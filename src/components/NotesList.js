@@ -220,7 +220,7 @@ const NoteCard = ({ note, onDelete, onClick, onArchive, index }) => {
         elevation={0}
         sx={{
           width: '100%',
-          maxWidth: '100%',        // Changed from 700px to 100%
+          maxWidth: '100%',
           height: '150px',
           maxHeight: '150px',
           minHeight: '150px',
@@ -228,7 +228,7 @@ const NoteCard = ({ note, onDelete, onClick, onArchive, index }) => {
           flexDirection: 'row',
           cursor: 'pointer',
           position: 'relative',
-          margin: '0 auto',         // Center the card
+          margin: '0 auto',
           transition: 'all 0.3s ease-in-out',
           background: theme.palette.mode === 'dark' 
             ? 'linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(40, 40, 40, 0.95) 100%)' 
@@ -241,7 +241,7 @@ const NoteCard = ({ note, onDelete, onClick, onArchive, index }) => {
           borderRadius: 2,
           mb: 2,
           overflow: 'hidden',
-          flex: '0 0 auto',
+          flex: '1 1 auto',
           '&:hover': {
             transform: 'translateY(-4px)',
             boxShadow: theme.shadows[4]
@@ -481,7 +481,9 @@ const NotesList = ({ compact }) => {
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
-            p: 0
+            p: 0,
+            maxWidth: '100% !important', // Add this line
+            width: '100%'                // Add this line
           }} 
           disableGutters
         >
@@ -663,15 +665,19 @@ const NotesList = ({ compact }) => {
                 onClick={() => dispatch(setSelectedCategory('all'))}
                 sx={{
                   background: selectedCategory === 'all'
-                    ? theme.palette.primary.main
+                    ? theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(0, 0, 0, 0.05)'
                     : 'transparent',
-                  color: selectedCategory === 'all'
-                    ? '#fff'
-                    : 'text.primary',
-                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.text.primary,
+                  borderColor: theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.15)'
+                    : 'rgba(0, 0, 0, 0.15)',
                   border: '1px solid',
                   '&:hover': {
-                    background: `${theme.palette.primary.main}20`,
+                    background: theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.15)'
+                      : 'rgba(0, 0, 0, 0.08)'
                   }
                 }}
               />
@@ -682,15 +688,21 @@ const NotesList = ({ compact }) => {
                   onClick={() => dispatch(setSelectedCategory(category))}
                   sx={{
                     background: selectedCategory === category
-                      ? getCategoryColor(category)
+                      ? theme.palette.mode === 'dark'
+                        ? `${getCategoryColor(category)}15`
+                        : `${getCategoryColor(category)}10`
                       : 'transparent',
                     color: selectedCategory === category
-                      ? '#fff'
-                      : 'text.primary',
-                    borderColor: getCategoryColor(category),
+                      ? getCategoryColor(category)
+                      : theme.palette.text.primary,
+                    borderColor: selectedCategory === category
+                      ? getCategoryColor(category)
+                      : theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.15)'
+                        : 'rgba(0, 0, 0, 0.15)',
                     border: '1px solid',
                     '&:hover': {
-                      background: `${getCategoryColor(category)}20`,
+                      background: `${getCategoryColor(category)}15`
                     }
                   }}
                 />
@@ -855,19 +867,24 @@ const NotesList = ({ compact }) => {
                   ))}
                 </Box>
               ) : (
-                <Grid 
-                  container 
-                  spacing={3}
-                  sx={{ p: 3 }}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '100%',
+                    p: 3,
+                    gap: 4
+                  }}
                 >
                   {Object.entries(
                     filteredNotes.reduce((acc, note) => {
+                      // Group by category first
                       const category = note.category || 'Uncategorized';
-                      const subject = note.subject || 'General';
-                      
                       if (!acc[category]) {
                         acc[category] = {};
                       }
+                      // Then by subject
+                      const subject = note.subject || 'General';
                       if (!acc[category][subject]) {
                         acc[category][subject] = [];
                       }
@@ -875,12 +892,17 @@ const NotesList = ({ compact }) => {
                       return acc;
                     }, {})
                   ).map(([category, subjects]) => (
-                    <Grid item xs={12} key={category}>
+                    <Box
+                      key={category}
+                      sx={{
+                        width: '100%',
+                        mb: 4
+                      }}
+                    >
                       <Typography 
                         variant="h5" 
                         sx={{ 
-                          mb: 3, 
-                          mt: 3,
+                          mb: 3,
                           fontWeight: 600,
                           color: getCategoryColor(category),
                           borderBottom: `2px solid ${getCategoryColor(category)}20`,
@@ -889,52 +911,61 @@ const NotesList = ({ compact }) => {
                       >
                         {category}
                       </Typography>
-                      
-                      {Object.entries(subjects).map(([subject, notes]) => (
-                        <Box key={`${category}-${subject}`} sx={{ mb: 4 }}>
-                          <Typography 
-                            variant="h6" 
-                            sx={{ 
-                              mb: 2,
-                              fontWeight: 500,
-                              color: theme.palette.mode === 'dark' 
-                                ? 'rgba(255, 255, 255, 0.7)'
-                                : 'rgba(0, 0, 0, 0.7)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1
-                            }}
-                          >
-                            <Box 
-                              sx={{ 
-                                width: 6,
-                                height: 6,
-                                borderRadius: '50%',
-                                backgroundColor: getCategoryColor(category)
-                              }} 
-                            />
-                            {subject}
-                          </Typography>
-                          
-                          <Grid container spacing={2}>
-                            {notes.map((note, index) => (
-                              <Grid item xs={12} md={6} lg={4} key={note.id}>
-                                <NoteCard
-                                  note={note}
-                                  onClick={handleNoteClick}
-                                  onDelete={handleDeleteNote}
-                                  onArchive={handleArchiveNote}
-                                  index={index}
-                                  compact={compact}
-                                />
-                              </Grid>
-                            ))}
-                          </Grid>
-                        </Box>
-                      ))}
-                    </Grid>
+
+                      <Stack spacing={4}>
+                        {Object.entries(subjects).map(([subject, notes]) => (
+                          <Box key={`${category}-${subject}`}>
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                mb: 2,
+                                fontWeight: 500,
+                                color: theme.palette.mode === 'dark' 
+                                  ? 'rgba(255, 255, 255, 0.7)'
+                                  : 'rgba(0, 0, 0, 0.7)',
+                                fontSize: '1rem'
+                              }}
+                            >
+                              {subject}
+                            </Typography>
+
+                            <Box
+                              sx={{
+                                display: 'grid',
+                                gridTemplateColumns: {
+                                  md: 'repeat(auto-fill, minmax(300px, 1fr))',
+                                  lg: 'repeat(auto-fill, minmax(320px, 1fr))',
+                                  xl: 'repeat(auto-fill, minmax(350px, 1fr))'
+                                },
+                                gap: 2,
+                                width: '100%'
+                              }}
+                            >
+                              {notes.map((note, index) => (
+                                <Box
+                                  key={note.id}
+                                  sx={{
+                                    height: '100%',
+                                    display: 'flex'
+                                  }}
+                                >
+                                  <NoteCard
+                                    note={note}
+                                    onClick={handleNoteClick}
+                                    onDelete={handleDeleteNote}
+                                    onArchive={handleArchiveNote}
+                                    index={index}
+                                    compact={compact}
+                                  />
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Box>
                   ))}
-                </Grid>
+                </Box>
               )
             )}
           </Box>
