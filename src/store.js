@@ -94,6 +94,13 @@ const notesSlice = createSlice({
         ...note,
         subject: note.subject === action.payload ? '' : note.subject
       }));
+    },
+    archiveNote: (state, action) => {
+      state.notes = state.notes.map(note =>
+        note.id === action.payload
+          ? { ...note, archived: !note.archived }
+          : note
+      );
     }
   }
 });
@@ -129,7 +136,7 @@ const uiSlice = createSlice({
   }
 });
 
-export const { addNote, updateNote, deleteNote, addTag, addSubject, removeSubject } = notesSlice.actions;
+export const { addNote, updateNote, deleteNote, addTag, addSubject, removeSubject, archiveNote } = notesSlice.actions;
 export const { 
   setDarkMode, 
   setThemeMode, 

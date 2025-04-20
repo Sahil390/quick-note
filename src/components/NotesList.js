@@ -31,10 +31,11 @@ import {
   Search as SearchIcon,
   Add as AddIcon,
   Settings as SettingsIcon,
-  FilterList as FilterIcon
+  FilterList as FilterIcon,
+  Archive as ArchiveIcon
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
-import { deleteNote, setSearchQuery, setSelectedCategory } from '../store.js';
+import { deleteNote, setSearchQuery, setSelectedCategory, archiveNote } from '../store.js';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import Settings from './Settings';
@@ -53,7 +54,7 @@ const getCategoryColor = (category) => {
   return colorMap[category] || '#757575';
 };
 
-const NoteListItem = ({ note, onDelete, onClick }) => {
+const NoteListItem = ({ note, onDelete, onClick, onArchive }) => {
   const theme = useTheme();
   
   return (
@@ -155,31 +156,51 @@ const NoteListItem = ({ note, onDelete, onClick }) => {
           >
             {new Date(note.updatedAt).toLocaleDateString()}
           </Typography>
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(note.id);
-            }}
-            sx={{ 
-              padding: 0.3,
-              color: theme.palette.text.secondary,
-              opacity: 0.7,
-              '&:hover': {
-                opacity: 1,
-                color: theme.palette.error.main
-              }
-            }}
-          >
-            <DeleteIcon sx={{ fontSize: '0.9rem' }} />
-          </IconButton>
+          <Stack direction="row" spacing={0.5}>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onArchive(note.id);
+              }}
+              sx={{ 
+                padding: 0.3,
+                color: theme.palette.text.secondary,
+                opacity: 0.7,
+                '&:hover': {
+                  opacity: 1,
+                  color: theme.palette.primary.main
+                }
+              }}
+            >
+              <ArchiveIcon sx={{ fontSize: '0.9rem' }} />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(note.id);
+              }}
+              sx={{ 
+                padding: 0.3,
+                color: theme.palette.text.secondary,
+                opacity: 0.7,
+                '&:hover': {
+                  opacity: 1,
+                  color: theme.palette.error.main
+                }
+              }}
+            >
+              <DeleteIcon sx={{ fontSize: '0.9rem' }} />
+            </IconButton>
+          </Stack>
         </Box>
       </Box>
     </Box>
   );
 };
 
-const NoteCard = ({ note, onDelete, onClick, index }) => {
+const NoteCard = ({ note, onDelete, onClick, onArchive, index }) => {
   const theme = useTheme();
   const [ref, inView] = useInView({
     threshold: 0.1,
@@ -199,7 +220,7 @@ const NoteCard = ({ note, onDelete, onClick, index }) => {
         elevation={0}
         sx={{
           width: '100%',
-          maxWidth: '800px',
+          maxWidth: '100%',        // Changed from 700px to 100%
           height: '150px',
           maxHeight: '150px',
           minHeight: '150px',
@@ -207,6 +228,7 @@ const NoteCard = ({ note, onDelete, onClick, index }) => {
           flexDirection: 'row',
           cursor: 'pointer',
           position: 'relative',
+          margin: '0 auto',         // Center the card
           transition: 'all 0.3s ease-in-out',
           background: theme.palette.mode === 'dark' 
             ? 'linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(40, 40, 40, 0.95) 100%)' 
@@ -330,22 +352,41 @@ const NoteCard = ({ note, onDelete, onClick, index }) => {
               )}
             </Stack>
 
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(note.id);
-              }}
-              sx={{ 
-                opacity: 0,
-                transition: 'opacity 0.2s',
-                '.MuiCard-root:hover &': {
-                  opacity: 1
-                }
-              }}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
+            <Stack direction="row" spacing={1}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onArchive(note.id);
+                }}
+                sx={{ 
+                  opacity: 0,
+                  transition: 'opacity 0.2s',
+                  '.MuiCard-root:hover &': {
+                    opacity: 1
+                  }
+                }}
+              >
+                <ArchiveIcon fontSize="small" />
+              </IconButton>
+
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(note.id);
+                }}
+                sx={{ 
+                  opacity: 0,
+                  transition: 'opacity 0.2s',
+                  '.MuiCard-root:hover &': {
+                    opacity: 1
+                  }
+                }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Stack>
           </Box>
         </CardContent>
       </Card>
@@ -400,6 +441,10 @@ const NotesList = ({ compact }) => {
 
   const handleDeleteNote = (noteId) => {
     dispatch(deleteNote(noteId));
+  };
+
+  const handleArchiveNote = (noteId) => {
+    dispatch(archiveNote(noteId));
   };
   
   const handleNewNote = () => {
@@ -486,12 +531,10 @@ const NotesList = ({ compact }) => {
                   initial={{ x: -20 }}
                   animate={{ x: 0 }}
                   sx={{ 
-                    fontWeight: 700,
-                    background: 'linear-gradient(45deg, #2196f3 30%, #21cbf3 90%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
                     textAlign: isMobile ? 'center' : 'left',
-                    letterSpacing: '0.5px'
+                    letterSpacing: '0.2px'
                   }}
                 >
                   My Notes
@@ -804,6 +847,7 @@ const NotesList = ({ compact }) => {
                             note={note}
                             onClick={handleNoteClick}
                             onDelete={handleDeleteNote}
+                            onArchive={handleArchiveNote}
                           />
                         ))}
                       </Stack>
@@ -814,14 +858,7 @@ const NotesList = ({ compact }) => {
                 <Grid 
                   container 
                   spacing={3}
-                  sx={{
-                    p: 3,
-                    '& .MuiGrid-item': {
-                      display: 'flex',
-                      flexDirection: 'column',
-                      width: '100%'
-                    }
-                  }}
+                  sx={{ p: 3 }}
                 >
                   {Object.entries(
                     filteredNotes.reduce((acc, note) => {
@@ -881,11 +918,12 @@ const NotesList = ({ compact }) => {
                           
                           <Grid container spacing={2}>
                             {notes.map((note, index) => (
-                              <Grid item xs={12} key={note.id}>
+                              <Grid item xs={12} md={6} lg={4} key={note.id}>
                                 <NoteCard
                                   note={note}
                                   onClick={handleNoteClick}
                                   onDelete={handleDeleteNote}
+                                  onArchive={handleArchiveNote}
                                   index={index}
                                   compact={compact}
                                 />
