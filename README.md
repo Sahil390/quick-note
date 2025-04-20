@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo192.png" alt="Quick Note Logo" width="120"/>
+  <img src="public/logo512.png" alt="Quick Note Logo" width="120"/>
 </div>
 
 # Quick Note - Modern Note Taking App
