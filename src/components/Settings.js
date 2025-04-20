@@ -60,77 +60,146 @@ const Settings = ({ open, onClose }) => {
       variant="temporary"
       sx={{
         '& .MuiDrawer-paper': {
-          width: 240,
+          width: isMobile ? '100%' : 320,
           boxSizing: 'border-box',
           background: theme.palette.mode === 'dark' 
-            ? 'rgba(30, 30, 30, 0.8)' 
-            : 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(10px)',
+            ? 'linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(40, 40, 40, 0.95) 100%)'
+            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 250, 250, 0.95) 100%)',
+          backdropFilter: 'blur(25px)',
+          WebkitBackdropFilter: 'blur(25px)',
           borderLeft: '1px solid',
           borderColor: theme.palette.mode === 'dark' 
-            ? 'rgba(255, 255, 255, 0.1)' 
-            : 'rgba(0, 0, 0, 0.1)',
+            ? 'rgba(255, 255, 255, 0.08)'
+            : 'rgba(0, 0, 0, 0.08)',
         },
       }}
     >
       <Box sx={{ 
-        p: 2, 
+        p: 2.5,
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
         borderBottom: '1px solid',
         borderColor: theme.palette.mode === 'dark' 
-          ? 'rgba(255, 255, 255, 0.1)' 
-          : 'rgba(0, 0, 0, 0.1)',
+          ? 'rgba(255, 255, 255, 0.08)'
+          : 'rgba(0, 0, 0, 0.08)',
       }}>
         <Typography variant="h6" component="div" sx={{ 
-          fontWeight: 'bold',
+          fontWeight: 600,
           display: 'flex',
           alignItems: 'center',
-          gap: 1
+          gap: 1.5,
+          color: theme.palette.text.primary,
         }}>
-          <SettingsIcon />
+          <SettingsIcon sx={{ fontSize: 20 }} />
           Settings
         </Typography>
-        <IconButton onClick={onClose}>
-          <CloseIcon />
+        <IconButton 
+          onClick={onClose}
+          sx={{
+            background: theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.05)'
+              : 'rgba(0, 0, 0, 0.05)',
+            '&:hover': {
+              background: theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.08)'
+                : 'rgba(0, 0, 0, 0.08)',
+            }
+          }}
+        >
+          <CloseIcon fontSize="small" />
         </IconButton>
       </Box>
 
-      <List>
-        <ListItem>
-          <ListItemIcon>
-            <DarkModeIcon />
+      <List sx={{ p: 2 }}>
+        <ListItem sx={{ 
+          px: 2,
+          py: 1.5,
+          background: theme.palette.mode === 'dark' 
+            ? 'rgba(255, 255, 255, 0.03)'
+            : 'rgba(0, 0, 0, 0.03)',
+          borderRadius: 2,
+          mb: 2
+        }}>
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <DarkModeIcon sx={{ 
+              color: theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.7)'
+                : 'rgba(0, 0, 0, 0.7)'
+            }} />
           </ListItemIcon>
           <ListItemText 
-            primary="Theme Settings" 
-            secondary="Customize your app appearance"
+            primary={
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                Theme Settings
+              </Typography>
+            }
+            secondary={
+              <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                Customize your app appearance
+              </Typography>
+            }
           />
         </ListItem>
         
         <Box sx={{ px: 2, py: 1 }}>
-          <FormControl component="fieldset" sx={{ width: '100%', mb: 2 }}>
-            <FormLabel component="legend">Theme Mode</FormLabel>
+          <FormControl component="fieldset" sx={{ width: '100%', mb: 3 }}>
+            <FormLabel component="legend" sx={{ 
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              mb: 1.5,
+              color: theme.palette.text.primary
+            }}>
+              Theme Mode
+            </FormLabel>
             <RadioGroup
               value={themeMode}
               onChange={handleThemeModeChange}
             >
               <FormControlLabel 
                 value="manual" 
-                control={<Radio size="small" />} 
+                control={
+                  <Radio 
+                    size="small"
+                    sx={{
+                      '&.Mui-checked': {
+                        color: theme.palette.primary.main
+                      }
+                    }}
+                  />
+                } 
                 label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Brightness4Icon fontSize="small" />
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    py: 0.5
+                  }}>
+                    <Brightness4Icon sx={{ fontSize: 18 }} />
                     <Typography variant="body2">Manual</Typography>
                   </Box>
                 } 
               />
               <FormControlLabel 
                 value="system" 
-                control={<Radio size="small" />} 
+                control={
+                  <Radio 
+                    size="small"
+                    sx={{
+                      '&.Mui-checked': {
+                        color: theme.palette.primary.main
+                      }
+                    }}
+                  />
+                } 
                 label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <ComputerIcon fontSize="small" />
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    py: 0.5
+                  }}>
+                    <ComputerIcon sx={{ fontSize: 18 }} />
                     <Typography variant="body2">System</Typography>
                   </Box>
                 } 
@@ -143,22 +212,45 @@ const Settings = ({ open, onClose }) => {
               <Switch
                 checked={darkMode}
                 onChange={handleDarkModeToggle}
-                color="primary"
                 disabled={themeMode === 'system'}
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': {
+                    color: theme.palette.primary.main
+                  },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                    backgroundColor: theme.palette.primary.main
+                  }
+                }}
               />
             }
-            label="Dark Mode"
+            label={
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                Dark Mode
+              </Typography>
+            }
           />
+          
           {themeMode === 'system' && (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                display: 'block', 
+                mt: 1,
+                color: 'text.secondary',
+                fontStyle: 'italic'
+              }}
+            >
               Using system preference: {prefersDarkMode ? 'Dark' : 'Light'}
             </Typography>
           )}
         </Box>
 
-        <Divider sx={{ my: 2 }} />
-
-        {/* Add more settings sections here */}
+        <Divider sx={{ 
+          my: 3,
+          borderColor: theme.palette.mode === 'dark' 
+            ? 'rgba(255, 255, 255, 0.08)'
+            : 'rgba(0, 0, 0, 0.08)'
+        }} />
       </List>
     </Drawer>
   );
