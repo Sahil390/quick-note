@@ -17,6 +17,8 @@ import {
   Tooltip,
   Container,
   Divider,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -25,6 +27,8 @@ import {
   Fullscreen as FullscreenIcon,
   FullscreenExit as FullscreenExitIcon,
   Delete as DeleteIcon,
+  FullscreenRounded,
+  FullscreenExitRounded,
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { addNote, updateNote, addTag, setFullscreen, resetFullscreen, addSubject, removeSubject } from '../store.js';
@@ -50,6 +54,10 @@ const NoteEditor = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [subject, setSubject] = useState('');
   const [newSubject, setNewSubject] = useState('');
+  const [isEditorFullscreen, setIsEditorFullscreen] = useState(false);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     dispatch(resetFullscreen());
@@ -125,7 +133,7 @@ const NoteEditor = () => {
     setTags(tags.filter((tag) => tag !== tagToDelete));
   };
 
-  const handleFullscreenToggle = () => {
+  const handleToggleFullscreen = () => {
     dispatch(setFullscreen(!isFullscreen));
   };
 
@@ -144,12 +152,17 @@ const NoteEditor = () => {
     }
   };
 
+  const handleEditorFullscreen = () => {
+    setIsEditorFullscreen(!isEditorFullscreen);
+  };
+
   return (
     <Container 
       maxWidth={isFullscreen ? 'lg' : 'xl'} 
       sx={{ 
         height: '100vh', 
-        py: 2,
+        py: isMobile ? 0 : 2,
+        px: isMobile ? 0 : 2,
         ...(isFullscreen && {
           position: 'fixed',
           top: 0,
@@ -157,6 +170,9 @@ const NoteEditor = () => {
           right: 0,
           bottom: 0,
           zIndex: 1300
+        }),
+        ...(isMobile && {
+          maxWidth: '100% !important'
         })
       }}
     >
@@ -180,11 +196,11 @@ const NoteEditor = () => {
             ? 'linear-gradient(135deg, rgba(30, 30, 30, 0.8) 0%, rgba(40, 40, 40, 0.8) 100%)'
             : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(250, 250, 250, 0.8) 100%)',
           backdropFilter: 'blur(10px)',
-          border: '1px solid',
+          border: isMobile ? 'none' : '1px solid',
           borderColor: theme => theme.palette.mode === 'dark'
             ? 'rgba(255, 255, 255, 0.1)'
             : 'rgba(0, 0, 0, 0.1)',
-          borderRadius: 2,
+          borderRadius: isMobile ? 0 : 2,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -253,18 +269,22 @@ const NoteEditor = () => {
             >
               {id === 'new' ? 'New Note' : 'Edit Note'}
             </Typography>
-            <Tooltip title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
-              <IconButton
-                component={motion.button}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                onClick={handleFullscreenToggle}
-                sx={{ mr: 1 }}
-              >
-                {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-              </IconButton>
-            </Tooltip>
+            
+            {/* Add fullscreen button only for desktop */}
+            {!isMobile && (
+              <Tooltip title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}>
+                <IconButton
+                  onClick={handleToggleFullscreen}
+                  sx={{ mr: 1 }}
+                  component={motion.button}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isFullscreen ? <FullscreenExitRounded /> : <FullscreenRounded />}
+                </IconButton>
+              </Tooltip>
+            )}
+            
             <Tooltip title="Save note">
               <IconButton 
                 color="primary" 
@@ -282,10 +302,12 @@ const NoteEditor = () => {
 
         <Box 
           sx={{ 
-            p: 3, 
+            p: isMobile ? 2 : 3, 
             flexGrow: 1, 
             overflow: 'auto',
-            height: isFullscreen ? 'calc(100vh - 64px)' : '100%'  // 64px is AppBar height
+            height: isFullscreen ? 'calc(100vh - 64px)' : '100%',
+            display: 'flex',
+            flexDirection: 'column'
           }}
         >
           <TextField
@@ -295,15 +317,19 @@ const NoteEditor = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             sx={{ 
-              mb: 3,
+              mb: isMobile ? 2 : 3,
               '& .MuiInput-root': {
-                fontSize: '2rem',
+                fontSize: isMobile ? '1.5rem' : '2rem',
                 fontWeight: 600
               }
             }}
           />
           
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
+          <Stack 
+            direction={{ xs: 'column', sm: 'row' }} 
+            spacing={isMobile ? 1 : 2} 
+            sx={{ mb: isMobile ? 2 : 3 }}
+          >
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
               <Select
@@ -379,7 +405,12 @@ const NoteEditor = () => {
             </FormControl>
           </Stack>
           
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ 
+            mb: isMobile ? 2 : 3,
+            '& .tiptap': {
+              minHeight: isMobile ? 'calc(100vh - 300px)' : 'auto'
+            }
+          }}>
             <Typography variant="subtitle2" sx={{ mb: 1 }}>
               Tags
             </Typography>
@@ -458,11 +489,93 @@ const NoteEditor = () => {
             </Box>
           </Box>
           
-          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-            <RichTextEditor 
-              content={content}
-              onChange={setContent}
-            />
+          <Box sx={{ 
+            flex: 1, 
+            position: 'relative',
+          }}>
+            <Box 
+              component={motion.div}
+              animate={{
+                position: isEditorFullscreen ? 'fixed' : 'relative',
+                top: isEditorFullscreen ? 0 : 'auto',
+                left: isEditorFullscreen ? 0 : 'auto',
+                right: isEditorFullscreen ? 0 : 'auto',
+                bottom: isEditorFullscreen ? 0 : 'auto',
+                width: '100%',
+                height: isEditorFullscreen ? '100vh' : 'auto',
+                backgroundColor: theme => theme.palette.background.paper,
+                zIndex: isEditorFullscreen ? 1400 : 'auto',
+                padding: isEditorFullscreen ? 3 : 0
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30
+              }}
+            >
+              {/* Fullscreen Header */}
+              {isEditorFullscreen && (
+                <AppBar 
+                  position="fixed" 
+                  color="default" 
+                  elevation={1}
+                  sx={{
+                    top: 0,
+                    background: theme => theme.palette.mode === 'dark'
+                      ? 'rgba(0, 0, 0, 0.8)'
+                      : 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(10px)',
+                  }}
+                >
+                  <Toolbar>
+                    <Typography variant="h6" sx={{ flex: 1 }}>
+                      {title || 'Untitled Note'}
+                    </Typography>
+                    <Tooltip title="Exit fullscreen">
+                      <IconButton onClick={handleEditorFullscreen}>
+                        <FullscreenExitRounded />
+                      </IconButton>
+                    </Tooltip>
+                  </Toolbar>
+                </AppBar>
+              )}
+
+              {/* Editor Content */}
+              <Box sx={{ 
+                mt: isEditorFullscreen ? 8 : 0,
+                position: 'relative' 
+              }}>
+                <RichTextEditor 
+                  content={content}
+                  onChange={setContent}
+                />
+                
+                {/* Fullscreen toggle button */}
+                {!isEditorFullscreen && !isMobile && (
+                  <Tooltip title="Enter fullscreen">
+                    <IconButton
+                      onClick={handleEditorFullscreen}
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        backgroundColor: theme => theme.palette.mode === 'dark' 
+                          ? 'rgba(0,0,0,0.2)' 
+                          : 'rgba(255,255,255,0.2)',
+                        backdropFilter: 'blur(4px)',
+                        '&:hover': {
+                          backgroundColor: theme => theme.palette.mode === 'dark' 
+                            ? 'rgba(0,0,0,0.3)' 
+                            : 'rgba(255,255,255,0.3)',
+                        }
+                      }}
+                    >
+                      <FullscreenRounded />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+            </Box>
           </Box>
         </Box>
       </Paper>
