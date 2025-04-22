@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useParams, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useParams } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 import NotesList from './components/NotesList';
 import NoteEditor from './components/NoteEditor';
 import NoteView from './components/NoteView';
-import { Provider, useSelector, useDispatch } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import store from './store.js';
 import { useMediaQuery } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,12 +48,6 @@ const AppLayout = ({ isMobile }) => {
   const location = useLocation();
   const isEditing = location.pathname.includes('/note/') || location.pathname === '/new';
   const isFullscreen = useSelector(state => state.ui.isFullscreen);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const handleEditClick = (noteId) => {
-    navigate(`/edit/${noteId}`);
-  };
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -155,12 +149,12 @@ const NoteContainer = ({ isMobile }) => {
   );
 };
 
-function App() {
+const App = () => {
   return (
     <Provider store={store}>
       <AppContent />
     </Provider>
   );
-}
+};
 
 export default App;

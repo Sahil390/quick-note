@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -7,7 +7,6 @@ import {
   Chip,
   Stack,
   useTheme,
-  useMediaQuery,
   Container,
   Tooltip
 } from '@mui/material';
@@ -22,12 +21,95 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { deleteNote, setFullscreen, resetFullscreen } from '../store';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 
+// Update the ContentViewer component to handle cleanup
+const ContentViewer = ({ content }) => {
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content,
+    editable: false,
+  });
+
+  // Cleanup editor on unmount
+  useEffect(() => {
+    return () => {
+      if (editor) {
+        editor.destroy();
+      }
+    };
+  }, [editor]);
+
+  // Update content when it changes
+  useEffect(() => {
+    if (editor && content) {
+      editor.commands.setContent(content);
+    }
+  }, [editor, content]);
+
+  return (
+    <Box
+      sx={{
+        '& .ProseMirror': {
+          '& h1': {
+            fontSize: '2rem',
+            fontWeight: 600,
+            mb: 2,
+          },
+          '& h2': {
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            mb: 2,
+          },
+          '& p': {
+            mb: 2,
+            lineHeight: 1.8,
+          },
+          '& ul, & ol': {
+            pl: 3,
+            mb: 2,
+          },
+          '& blockquote': {
+            borderLeft: 3,
+            borderColor: 'primary.main',
+            pl: 2,
+            ml: 0,
+            color: 'text.secondary',
+            my: 2,
+          },
+          '& pre': {
+            backgroundColor: 'action.hover',
+            p: 2,
+            borderRadius: 1,
+            mb: 2,
+            overflow: 'auto',
+          },
+          '& code': {
+            fontFamily: 'monospace',
+            backgroundColor: 'action.hover',
+            px: 1,
+            py: 0.5,
+            borderRadius: 0.5,
+          },
+          '& strong': {
+            fontWeight: 600,
+          },
+        },
+      }}
+    >
+      <EditorContent editor={editor} />
+    </Box>
+  );
+};
+
+// Update the main NoteView component to handle note changes
 const NoteView = ({ noteId, onEditClick, isMobile }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const isFullscreen = useSelector(state => state.ui.isFullscreen);
+  const contentRef = useRef(null);
 
   const note = useSelector(state => 
     state.notes.notes.find(n => n.id === noteId)
@@ -62,6 +144,7 @@ const NoteView = ({ noteId, onEditClick, isMobile }) => {
     navigate('/');
   };
 
+  // Add key prop to force remount of ContentViewer
   return (
     <Container maxWidth={isFullscreen ? 'lg' : 'xl'} sx={{ height: '100vh', py: 2 }}>
       <Paper
@@ -123,12 +206,24 @@ const NoteView = ({ noteId, onEditClick, isMobile }) => {
               )}
             </Stack>
           </Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1,
+            alignItems: 'center'
+          }}>
             <Tooltip title="Edit Note">
-              <IconButton onClick={onEditClick}>
+              <IconButton 
+                onClick={onEditClick}
+                sx={{
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'rgba(0, 0, 0, 0.05)',
+                }}
+              >
                 <EditIcon />
               </IconButton>
             </Tooltip>
+
             {!isMobile && (
               <Tooltip title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
                 <IconButton onClick={handleToggleFullscreen}>
@@ -136,8 +231,16 @@ const NoteView = ({ noteId, onEditClick, isMobile }) => {
                 </IconButton>
               </Tooltip>
             )}
+
             <Tooltip title="Delete Note">
-              <IconButton onClick={handleDelete}>
+              <IconButton 
+                onClick={handleDelete}
+                sx={{
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'rgba(0, 0, 0, 0.05)',
+                }}
+              >
                 <DeleteIcon />
               </IconButton>
             </Tooltip>
@@ -145,33 +248,38 @@ const NoteView = ({ noteId, onEditClick, isMobile }) => {
         </Box>
 
         {/* Content */}
-        <Box sx={{ p: isMobile ? 2 : 3, flex: 1, overflowY: 'auto' }}>
+        <Box 
+          ref={contentRef}
+          sx={{ p: isMobile ? 2 : 3, flex: 1, overflowY: 'auto' }}
+        >
           <Typography
             variant={isMobile ? 'h5' : 'h4'}
             component="h1"
-            sx={{ mb: 3, fontWeight: 600 }}
+            sx={{ 
+              mb: 3, 
+              fontWeight: 600,
+              color: theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.95)'
+                : 'rgba(0, 0, 0, 0.95)'
+            }}
           >
             {note.title}
           </Typography>
           
-          <Typography
-            variant="body1"
-            sx={{
-              whiteSpace: 'pre-wrap',
-              lineHeight: 1.8,
-              color: theme.palette.text.secondary
-            }}
-          >
-            {note.content}
-          </Typography>
+          {/* Add key prop to force remount */}
+          <ContentViewer 
+            key={note.id} 
+            content={note.content} 
+          />
 
           <Typography
             variant="caption"
             sx={{
               display: 'block',
               mt: 4,
-              color: theme.palette.text.secondary,
-              fontStyle: 'italic'
+              color: 'text.secondary',
+              fontStyle: 'italic',
+              opacity: 0.8
             }}
           >
             Last updated: {new Date(note.updatedAt).toLocaleString()}

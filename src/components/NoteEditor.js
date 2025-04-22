@@ -28,9 +28,9 @@ import {
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { addNote, updateNote, addTag, setFullscreen, resetFullscreen, addSubject, removeSubject } from '../store.js';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // Update this line to include AnimatePresence
+import RichTextEditor from './RichTextEditor';
 
-const MotionPaper = motion(Paper);
 const MotionChip = motion(Chip);
 
 const NoteEditor = () => {
@@ -39,7 +39,6 @@ const NoteEditor = () => {
   const dispatch = useDispatch();
   const notes = useSelector((state) => state.notes.notes);
   const categories = useSelector((state) => state.notes.categories);
-  const allTags = useSelector((state) => state.notes.tags);
   const subjects = useSelector((state) => state.notes.subjects);
   const isFullscreen = useSelector((state) => state.ui.isFullscreen);
   
@@ -53,18 +52,24 @@ const NoteEditor = () => {
   const [newSubject, setNewSubject] = useState('');
 
   useEffect(() => {
-    // Reset fullscreen state when component mounts
     dispatch(resetFullscreen());
     
     if (id && id !== 'new') {
       const note = notes.find((n) => n.id === id);
       if (note) {
-        setTitle(note.title);
-        setContent(note.content);
+        setTitle(note.title || '');
+        setContent(note.content || ''); // Make sure to handle empty content
         setCategory(note.category || 'Personal');
         setTags(note.tags || []);
         setSubject(note.subject || '');
       }
+    } else {
+      // Reset form for new notes
+      setTitle('');
+      setContent('');
+      setCategory('Personal');
+      setTags([]);
+      setSubject('');
     }
   }, [id, notes, dispatch]);
 
@@ -80,11 +85,21 @@ const NoteEditor = () => {
 
   const handleSave = async () => {
     setIsSaving(true);
+    const noteData = {
+      title,
+      content: content || '', // Ensure content is never undefined
+      category,
+      tags,
+      subject,
+      updatedAt: new Date().toISOString()
+    };
+
     if (id && id !== 'new') {
-      dispatch(updateNote({ id, title, content, category, tags, subject }));
+      dispatch(updateNote({ id, ...noteData }));
     } else {
-      dispatch(addNote({ title, content, category, tags, subject }));
+      dispatch(addNote(noteData));
     }
+
     setTimeout(() => {
       setIsSaving(false);
       navigate('/');
@@ -443,49 +458,12 @@ const NoteEditor = () => {
             </Box>
           </Box>
           
-          <TextField
-            fullWidth
-            multiline
-            variant="outlined"
-            placeholder="Start writing your note..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                height: isFullscreen ? 'calc(100vh - 380px)' : 'calc(100vh - 480px)',
-                backgroundColor: 'background.paper',
-                transition: theme => theme.transitions.create(
-                  ['height', 'background-color'],
-                  { duration: theme.transitions.duration.standard }
-                ),
-                '&:hover': {
-                  backgroundColor: 'background.default'
-                }
-              },
-              '& .MuiOutlinedInput-input': {
-                height: '100% !important',
-                overflowY: 'auto !important',
-                '&::-webkit-scrollbar': {
-                  width: '8px',
-                  background: 'transparent'
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: theme => theme.palette.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.2)' 
-                    : 'rgba(0, 0, 0, 0.2)',
-                  borderRadius: '4px',
-                  '&:hover': {
-                    background: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.3)' 
-                      : 'rgba(0, 0, 0, 0.3)',
-                  }
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: 'transparent'
-                }
-              }
-            }}
-          />
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+            <RichTextEditor 
+              content={content}
+              onChange={setContent}
+            />
+          </Box>
         </Box>
       </Paper>
     </Container>

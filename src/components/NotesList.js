@@ -16,15 +16,11 @@ import {
   InputAdornment,
   Tooltip,
   Button,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Divider,
   Stack,
   Menu,
   MenuItem,
-  Fade
+  Fade,
+  ListItemText
 } from '@mui/material';
 import { 
   Delete as DeleteIcon, 
@@ -52,6 +48,41 @@ const getCategoryColor = (category) => {
     'Projects': '#3f51b5'
   };
   return colorMap[category] || '#757575';
+};
+ 
+const ContentPreview = ({ content }) => {
+  const theme = useTheme();
+
+  // Function to convert HTML content to plain text
+  const htmlToPlainText = (html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || '';
+  };
+
+  const plainText = htmlToPlainText(content);
+  const previewText = plainText.split(' ').slice(0, 15).join(' ') + 
+    (plainText.split(' ').length > 15 ? '...' : '');
+
+  return (
+    <Typography
+      variant="body2"
+      sx={{
+        fontSize: '0.8rem',
+        color: theme.palette.text.secondary,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        lineHeight: 1.4,
+        mb: 1,
+        minHeight: '2.8em',
+        opacity: 0.8
+      }}
+    >
+      {previewText}
+    </Typography>
+  );
 };
 
 const NoteListItem = ({ note, onDelete, onClick, onArchive }) => {
@@ -124,23 +155,7 @@ const NoteListItem = ({ note, onDelete, onClick, onArchive }) => {
           </Stack>
         </Box>
 
-        <Typography
-          variant="body2"
-          sx={{
-            fontSize: '0.8rem',
-            color: theme.palette.text.secondary,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: '-webkit-box',
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: 'vertical',
-            lineHeight: 1.4,
-            mb: 1,
-            height: '1.4em'
-          }}
-        >
-          {note.content.split(' ').slice(0, 4).join(' ') + (note.content.split(' ').length > 4 ? '...' : '')}
-        </Typography>
+        <ContentPreview content={note.content} />
 
         <Box sx={{ 
           display: 'flex', 
@@ -289,22 +304,7 @@ const NoteCard = ({ note, onDelete, onClick, onArchive, index }) => {
               {note.title || 'Untitled'}
             </Typography>
 
-            <Typography
-              variant="body2"
-              sx={{
-                overflow: 'hidden',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                lineHeight: '1.5em',
-                height: '3em',
-                fontSize: '0.9rem',
-                color: theme.palette.text.secondary,
-                mb: 'auto'
-              }}
-            >
-              {note.content}
-            </Typography>
+            <ContentPreview content={note.content} />
 
             <Typography
               variant="caption"
@@ -399,7 +399,6 @@ const NotesList = ({ compact }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   
   const allNotes = useSelector((state) => state.notes.notes);
   const categories = useSelector((state) => state.notes.categories);
