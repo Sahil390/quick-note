@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Paper,
@@ -8,7 +8,13 @@ import {
   Stack,
   useTheme,
   Container,
-  Tooltip
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -111,6 +117,8 @@ const NoteView = ({ noteId, onEditClick, isMobile }) => {
   const isFullscreen = useSelector(state => state.ui.isFullscreen);
   const contentRef = useRef(null);
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const note = useSelector(state => 
     state.notes.notes.find(n => n.id === noteId)
   );
@@ -131,7 +139,12 @@ const NoteView = ({ noteId, onEditClick, isMobile }) => {
   }
 
   const handleDelete = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
     dispatch(deleteNote(note.id));
+    setDeleteDialogOpen(false);
     navigate('/');
   };
 
@@ -286,6 +299,46 @@ const NoteView = ({ noteId, onEditClick, isMobile }) => {
           </Typography>
         </Box>
       </Paper>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+        PaperProps={{
+          sx: {
+            background: theme.palette.mode === 'dark'
+              ? 'rgba(30, 30, 30, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+          }
+        }}
+      >
+        <DialogTitle id="delete-dialog-title">
+          Delete Note
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            Are you sure you want to delete "{note.title}"? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setDeleteDialogOpen(false)}
+            color="primary"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+            autoFocus
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

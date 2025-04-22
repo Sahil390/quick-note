@@ -20,7 +20,12 @@ import {
   Menu,
   MenuItem,
   Fade,
-  ListItemText
+  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText,
 } from '@mui/material';
 import { 
   Delete as DeleteIcon, 
@@ -87,6 +92,7 @@ const ContentPreview = ({ content }) => {
 
 const NoteListItem = ({ note, onDelete, onClick, onArchive }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
   return (
     <Box
@@ -181,10 +187,14 @@ const NoteListItem = ({ note, onDelete, onClick, onArchive }) => {
               sx={{ 
                 padding: 0.3,
                 color: theme.palette.text.secondary,
-                opacity: 0.7,
+                opacity: isMobile ? 0.7 : 0, // Always visible on mobile
+                transition: 'opacity 0.2s, color 0.2s',
                 '&:hover': {
                   opacity: 1,
                   color: theme.palette.primary.main
+                },
+                '.MuiBox-root:hover &': {
+                  opacity: 0.7
                 }
               }}
             >
@@ -199,10 +209,14 @@ const NoteListItem = ({ note, onDelete, onClick, onArchive }) => {
               sx={{ 
                 padding: 0.3,
                 color: theme.palette.text.secondary,
-                opacity: 0.7,
+                opacity: isMobile ? 0.7 : 0, // Always visible on mobile
+                transition: 'opacity 0.2s, color 0.2s',
                 '&:hover': {
                   opacity: 1,
                   color: theme.palette.error.main
+                },
+                '.MuiBox-root:hover &': {
+                  opacity: 0.7
                 }
               }}
             >
@@ -406,6 +420,8 @@ const NotesList = ({ compact }) => {
   const selectedCategory = useSelector((state) => state.ui.selectedCategory);
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState(null);
 
   const filteredNotes = allNotes.filter((note) => {
     const matchesSearch = 
@@ -439,13 +455,22 @@ const NotesList = ({ compact }) => {
   };
 
   const handleDeleteNote = (noteId) => {
-    dispatch(deleteNote(noteId));
+    setNoteToDelete(noteId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (noteToDelete) {
+      dispatch(deleteNote(noteToDelete));
+      setDeleteDialogOpen(false);
+      setNoteToDelete(null);
+    }
   };
 
   const handleArchiveNote = (noteId) => {
     dispatch(archiveNote(noteId));
   };
-  
+
   const handleNewNote = () => {
     navigate('/new');
   };
@@ -970,6 +995,38 @@ const NotesList = ({ compact }) => {
           </Box>
         </Container>
       </Box>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Delete Note
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            Are you sure you want to delete this note? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setDeleteDialogOpen(false)}
+            color="primary"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+            autoFocus
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
