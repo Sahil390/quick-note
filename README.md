@@ -1,10 +1,12 @@
 <div align="center">
   <img src="public/logo512.png" alt="Quick Note Logo" width="120"/>
+  
+  # Quick Note - Modern Note Taking App
+  
+  A sleek and modern note-taking application built with React, Redux, and Material-UI that helps you organize your thoughts, ideas, and tasks efficiently.
+
+  🚀 **[Try Quick Note](https://sahilquicknotes.netlify.app/)** | [Documentation](#features) | [Tech Stack](#tech-stack)
 </div>
-
-# Quick Note - Modern Note Taking App
-
-A sleek and modern note-taking application built with React, Redux, and Material-UI that helps you organize your thoughts, ideas, and tasks efficiently.
 
 ## Features
 
